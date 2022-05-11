@@ -147,6 +147,7 @@ const IGNORE_LIST: string[] = [
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
   'einsum',
+  'searchSorted',
   'sparseFillEmptyRows',
   'sparseReshape',
   'sparseSegmentMean',
@@ -161,6 +162,9 @@ const IGNORE_LIST: string[] = [
   // int32 input for the following ops not supported by TF 2.4.0.
   'leakyrelu test-tensorflow {} int32',
   'step kernel test-tensorflow {} with int32 tensor',
+  // upperBound and lowerBound use SearchSorted, which is unsupported
+  'upperBound',
+  'lowerBound',
 ];
 
 if (process.platform === 'win32') {

@@ -26,15 +26,7 @@ import './backend_webgpu_test_registry';
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 const TEST_FILTERS: TestFilter[] = [
-  // skip test cases include 5D, 6D, gradients webgpu
-  {
-    include: '5D',
-    excludes: ['webgpu '],
-  },
-  {
-    include: '6D',
-    excludes: ['webgpu '],
-  },
+  // skip test cases include gradients webgpu
   {
     include: 'gradients webgpu',
     excludes: ['webgpu '],
@@ -73,7 +65,24 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'conv2d ',
     excludes: [
-      'NCHW',      // Not yet implemented.
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'cumprod ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'prod ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'cumsum ',
+    excludes: [
       'gradient',  // gradient function not found.
     ]
   },
@@ -132,7 +141,6 @@ const TEST_FILTERS: TestFilter[] = [
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // GLSL compilation failed
-      'broadcast',  // matmul broadcasting not yet implemented.
     ]
   },
   {
@@ -177,10 +185,13 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'pool ',
     excludes: [
-      'avg x=[',                          // Unsupported 6D shape.
-      'max x=[4,3,1] f=[2,2] s=1 d=2',    // Unsupported 6D shape.
-      'max x=[2,4,4,1] f=[2,2] s=1 d=2',  // Unsupported 6D shape.
       'poolBackprop',  // maxPoolBackprop not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'prod ',
+    excludes: [
+      'gradients',  // Not yet implemented
     ]
   },
   {
@@ -287,8 +298,6 @@ const TEST_FILTERS: TestFilter[] = [
       'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
-      'cumprod ',
-      'cumsum ',
       'decodeWeights ',
       'denseBincount ',
       'diag ',
@@ -306,6 +315,7 @@ const TEST_FILTERS: TestFilter[] = [
       'logSigmoid ',
       'logicalOr ',
       'logicalXor ',
+      'lowerBound',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
@@ -324,6 +334,7 @@ const TEST_FILTERS: TestFilter[] = [
       'RFFT ',
       'round webgpu',
       'method otsu',  // round
+      'searchSorted',
       'selu ',
       'sign webgpu',
       'stft ',
@@ -340,6 +351,7 @@ const TEST_FILTERS: TestFilter[] = [
       'tan webgpu',
       'unique ',
       'unsortedSegmentSum ',
+      'upperBound',
       'valueAndGradients ',
     ]
   },
