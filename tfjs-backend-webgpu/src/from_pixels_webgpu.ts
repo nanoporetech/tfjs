@@ -15,27 +15,26 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
+  dispatch: [number, number, number];
+  dispatchLayout: {x: number[]};
+  isFromPixels = true;
   outputShape: number[] = [0];
   shaderKey: string;
-  workPerThread: number;
-  dispatchLayout: {x: number[]};
+  useImport: boolean;
   variableNames: string[] = [];
-  dispatch: [number, number, number];
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
 
-  useImport: boolean;
-
-  constructor(outputShape: number[], useImport = false) {
+  constructor(outputShape: number[], numChannels: number, useImport = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [numChannels, 1, 1]);
 
     this.useImport = useImport;
     this.shaderKey = `fromPixels_${this.useImport}`;
