@@ -19,10 +19,8 @@ import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs, util} from '@tensorflow/tfjs-core';
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {TextureInfo, WebGPUBackend} from '../backend_webgpu';
 import {FromPixelsProgram} from '../from_pixels_webgpu';
-
-type ExternalImage = HTMLCanvasElement|ImageBitmap|OffscreenCanvas;
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
@@ -62,39 +60,59 @@ export function fromPixels(args: {
         (pixels as HTMLVideoElement).videoHeight
       ] :
       [pixels.width, pixels.height];
-  const outShape = [height, width, numChannels];
+  const outputShape = [height, width, numChannels];
 
-  if (env().getBool('WEBGPU_USE_IMPORT')) {
-    if (isVideo) {
-      return fromPixelsExternalImage({
-        externalImage: pixels as HTMLVideoElement,
-        backend,
-        attrs,
-        outShape,
-        useImport: true
-      });
+  const useImport = env().getBool('WEBGPU_USE_IMPORT') && isVideo;
+  const isVideoOrImage = isVideo || isImage;
+  if (isImageBitmap || isCanvas || isVideoOrImage) {
+    let texture: GPUTexture|GPUExternalTexture;
+    let textureInfo: TextureInfo;
+
+    if (useImport) {
+      const externalTextureDescriptor = {source: pixels as HTMLVideoElement};
+      texture = backend.device.importExternalTexture(externalTextureDescriptor);
+      textureInfo = {width, height, format: null, usage: null, texture};
+    } else {
+      if (isVideoOrImage) {
+        if (fromPixels2DContext == null) {
+          fromPixels2DContext =
+              document.createElement('canvas').getContext('2d');
+        }
+        fromPixels2DContext.canvas.width = width;
+        fromPixels2DContext.canvas.height = height;
+        fromPixels2DContext.drawImage(
+            pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
+        pixels = fromPixels2DContext.canvas;
+      }
+
+      const usage = GPUTextureUsage.COPY_DST |
+          GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
+      const format = 'rgba8unorm' as GPUTextureFormat;
+      const texture = backend.textureManager.acquireTexture(
+          outputShape[1], outputShape[0], format, usage);
+      backend.queue.copyExternalImageToTexture(
+          {source: pixels as HTMLCanvasElement | ImageBitmap}, {texture},
+          [outputShape[1], outputShape[0]]);
+      textureInfo = {width, height, format, usage, texture};
     }
-  }
 
-  if (isVideo || isImage) {
-    if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement('canvas').getContext('2d');
-    }
-    fromPixels2DContext.canvas.width = width;
-    fromPixels2DContext.canvas.height = height;
-    fromPixels2DContext.drawImage(
-        pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
-    pixels = fromPixels2DContext.canvas;
-  }
+    const size = util.sizeFromShape(outputShape);
+    const strides = util.computeStrides(outputShape);
+    const program = new FromPixelsProgram(outputShape, numChannels, useImport);
 
-  if (isImageBitmap || isCanvas || isVideo || isImage) {
-    return fromPixelsExternalImage({
-      externalImage: pixels as HTMLCanvasElement | ImageBitmap,
-      backend,
-      attrs,
-      outShape,
-      useImport: false
-    });
+    const uniformData = [
+      {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
+      {type: 'uint32', data: [...strides]}
+    ];
+    const input = backend.makeTensorInfo([height, width], 'int32');
+    const info = backend.tensorMap.get(input.dataId);
+    info.textureInfo = textureInfo;
+    info.bufferInfo = null;
+
+    const result =
+        backend.runWebGPUProgram(program, [input], 'int32', uniformData);
+    backend.disposeData(input.dataId);
+    return result;
   }
 
   // TODO: Encoding should happen on GPU once we no longer have to download
@@ -113,37 +131,8 @@ export function fromPixels(args: {
     }
   }
 
-  const output = backend.makeTensorInfo(outShape, 'int32');
-
-  const info = backend.tensorMap.get(output.dataId);
-  info.values = new Int32Array(pixelArray);
-  backend.maybeReleaseBuffer(output.dataId);
-
+  const output =
+      backend.makeTensorInfo(outputShape, 'int32', new Int32Array(pixelArray));
   backend.uploadToGPU(output.dataId);
-  return output;
-}
-
-function fromPixelsExternalImage(args: {
-  externalImage: ExternalImage|HTMLVideoElement,
-  backend: WebGPUBackend,
-  attrs: FromPixelsAttrs,
-  outShape: number[],
-  useImport: boolean
-}): TensorInfo {
-  const {externalImage, backend, attrs, outShape, useImport} = args;
-  const {numChannels} = attrs;
-
-  const size = util.sizeFromShape(outShape);
-  const strides = util.computeStrides(outShape);
-  const program = new FromPixelsProgram(outShape, useImport);
-
-  const uniformData = [
-    {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
-    {type: 'uint32', data: [...strides]},
-    {type: 'uint32', data: [...program.dispatch]}
-  ];
-
-  const output = backend.runFromPixelsProgram(
-      program, outShape, uniformData, useImport, externalImage);
   return output;
 }
