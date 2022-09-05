@@ -17,8 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {typeSnippet} from './activation_util';
-import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
-import {makeMatMulPackedSource} from './matmul_packed_webgpu';
+import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
@@ -72,14 +71,13 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
       return ${typeSnippet(innerElementSize)}(0.0);`;
 
   const userCode = `
-  fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${
+  fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${
       typeSnippet(innerElementSize)} {
     let col = colIn * ${innerElementSize};
-    var batch = i32(globalId.z);
     ${sampleA}
   }
 
-  fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${
+  fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${
       typeSnippet(innerElementSize)} {
     let col = colIn * ${innerElementSize};
     let coordX = uniforms.filterDims.x - 1 -
@@ -95,12 +93,11 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
     return ${typeSnippet(innerElementSize)}(0.0);
   }
 
-  fn mm_write(row : i32, colIn : i32, valueInput : ${
-      typeSnippet(innerElementSize)}, globalId : vec3<u32>) {
+  fn mm_write(batch: i32, row : i32, colIn : i32, valueInput : ${
+      typeSnippet(innerElementSize)}) {
     let col = colIn * ${innerElementSize};
     if (row < uniforms.dimAOuter && (col + ${
       innerElementSize - 1}) < uniforms.dimBOuter) {
-      var batch = i32(globalId.z);
       var value = valueInput;
       let outCoord = vec4<i32>(
           batch,
@@ -125,10 +122,6 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
       'filterDims : vec2<i32>, pads : vec2<i32>, stride : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,';
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
-  tileAOuter: number;
-  tileBOuter: number;
-  tileInner: number;
-  innerElementSize: number;
   isVec4?: boolean;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
@@ -150,24 +143,16 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
         this.elementsPerThread);
 
     if (this.isVec4) {
-      this.innerElementSize = 4;
       this.variableTypes = ['vec4<f32>', 'f32'];
-    } else {
-      this.innerElementSize = this.elementsPerThread[0];
     }
-    this.tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
-    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = Math.max(
-        this.workGroupSize[0] * this.innerElementSize, this.workGroupSize[1]);
-    this.shaderKey = `conv2DDerInputMM_${this.isVec4}_${
-        this.elementsPerThread}_${this.innerElementSize}`;
+
+    this.shaderKey =
+        `conv2DDerInputMM_${this.isVec4}_${this.elementsPerThread}`;
   }
 
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
-        makeMatMulPackedVec4Source(
-            this.elementsPerThread, this.tileAOuter, this.tileBOuter,
-            this.tileInner, this.innerElementSize) :
+        makeMatMulPackedVec4Source(this.elementsPerThread, this.workGroupSize) :
         makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize);
     const userCode = `
     ${conv2dTransposeCommonSnippet(this.isVec4 ? 4 : 1)}
