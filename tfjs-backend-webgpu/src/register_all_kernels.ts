@@ -18,14 +18,23 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
+import {acosConfig} from './kernels/Acos';
+import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
+import {allConfig} from './kernels/All';
+import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
+import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
+import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
+import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -38,14 +47,17 @@ import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
+import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
+import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
+import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -59,7 +71,10 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNaN';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
@@ -74,11 +89,13 @@ import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {modConfig} from './kernels/Mod';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
 import {onesLikeConfig} from './kernels/OnesLike';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
@@ -114,6 +131,7 @@ import {stridedSliceConfig} from './kernels/StridedSlice';
 import {stringNGramsConfig} from './kernels/StringNGrams';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
+import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
@@ -126,14 +144,23 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
+  allConfig,
+  anyConfig,
   argMaxConfig,
   argMinConfig,
+  asinConfig,
+  asinhConfig,
+  atanConfig,
   atan2Config,
+  atanhConfig,
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -146,14 +173,17 @@ const kernelConfigs: KernelConfig[] = [
   cropAndResizeConfig,
   cumprodConfig,
   cumsumConfig,
+  denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   einsumConfig,
   eluConfig,
   equalConfig,
+  erfConfig,
   expConfig,
   expandDimsConfig,
   expm1Config,
+  fftConfig,
   fillConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
@@ -167,7 +197,10 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  ifftConfig,
   imagConfig,
+  isFiniteConfig,
+  isInfConfig,
   isNaNConfig,
   leakyReluConfig,
   lessConfig,
@@ -182,11 +215,13 @@ const kernelConfigs: KernelConfig[] = [
   minConfig,
   minimumConfig,
   mirrorPadConfig,
+  modConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   onesLikeConfig,
   packConfig,
   padV2Config,
@@ -222,6 +257,7 @@ const kernelConfigs: KernelConfig[] = [
   squaredDifferenceConfig,
   subConfig,
   sumConfig,
+  tanConfig,
   tanhConfig,
   tileConfig,
   topKConfig,

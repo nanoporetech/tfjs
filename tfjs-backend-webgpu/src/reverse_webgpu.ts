@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,58 +15,61 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ReverseProgram implements WebGPUProgram {
-  variableNames = ['x'];
-  workGroupSize: [number, number, number] = [64, 1, 1];
-  size = true;
   outputShape: number[];
+  shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  userCode: string;
-  rank: number;
-  shaderKey: string;
-  axis: number[];
+  variableNames = ['x'];
+  uniforms: string;
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
 
-  constructor(xShape: number[], axis: number[]) {
+  constructor(xShape: [number, number, number, number]) {
     this.outputShape = xShape;
-    this.axis = axis;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.rank = xShape.length;
-    this.shaderKey = "reverse";
-
-    if (this.rank > 4) {
-      throw new Error(
-        `WebGPU backend: Reverse of rank-${this.rank} tensor is not yet supported`
-      );
-    }
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
+    this.uniforms = ` axis : vec4<i32>,`;
+    this.shaderKey = 'reverse';
   }
 
   getUserCode(): string {
-    const getInCoord = (v: number, i: number) => {
-      if (this.axis.indexOf(i) !== -1 && v !== 1) {
-        return `${v} - coords[${i}] - 1`;
+    const reverseCoordsSnippet = `
+      // Using uniform variables as judging conditions, so the function has
+      // coherent execution within all threads.
+      fn getReverseCoords(coords : vec4<i32>) -> vec4<i32> {
+        var reverseCoords = coords;
+        if (uniforms.axis[0] == 1) {
+          reverseCoords[0] = uniforms.xShape[0] - coords[0] - 1;
+        }
+        if (uniforms.axis[1] == 1) {
+          reverseCoords[1] = uniforms.xShape[1] - coords[1] - 1;
+        }
+        if (uniforms.axis[2] == 1) {
+          reverseCoords[2] = uniforms.xShape[2] - coords[2] - 1;
+        }
+        if (uniforms.axis[3] == 1) {
+          reverseCoords[3] = uniforms.xShape[3] - coords[3] - 1;
+        }
+
+        return reverseCoords;
       }
-      return `coords[${i}]`;
-    };
-
-    let inCoords;
-    if (this.rank === 1) {
-      inCoords = `${this.outputShape[0]} - coords - 1`;
-    } else {
-      inCoords = this.outputShape.map((v, i) => getInCoord(v, i)).join(",");
-    }
-
-    return `
-          ${getMainHeaderAndGlobalIndexString()}
-            if (index < uniforms.size) {
-              var coords = getCoordsFromIndex(index);
-              setOutputAtIndex(index, getX(${inCoords}));
-            }
-          }
-        `;
+    `;
+    const userCode = `
+      ${reverseCoordsSnippet}
+      ${main('index')} {
+        if (index < uniforms.size) {
+          let coords = getCoordsFromIndex(index);
+          let reverseCoords = getReverseCoords(coords);
+          setOutputAtIndex(index, getX(reverseCoords[0],
+              reverseCoords[1], reverseCoords[2], reverseCoords[3]));
+        }
+      }
+    `;
+    return userCode;
   }
 }
