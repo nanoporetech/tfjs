@@ -37,8 +37,8 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "f10a3a12894fc3c9bf578ee5a5691769f6805c4be84359681a785a0c12e8d2b6",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.5.3/rules_nodejs-5.5.3.tar.gz"],
+    sha256 = "0e8a818724c0d5dcc10c31f9452ebd54b2ab94c452d4dcbb0d45a6636d2d5a44",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.7.2/rules_nodejs-5.7.2.tar.gz"],
 )
 
 # Install rules_nodejs dependencies.
@@ -211,30 +211,50 @@ http_archive(
 
 http_archive(
     name = "rules_python",
-    sha256 = "5fa3c738d33acca3b97622a13a741129f67ef43f5fdfcec63b29374cc0574c29",
-    strip_prefix = "rules_python-0.9.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.9.0.tar.gz",
+    sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    strip_prefix = "rules_python-0.16.1",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
+# TODO(mattSoulanille): Change the docker so it doesn't run as root?
+# https://github.com/bazelbuild/rules_python/pull/713
+# https://github.com/GoogleCloudPlatform/cloud-builders/issues/641
 python_register_toolchains(
     name = "python3_8",
+    ignore_root_user_error = True,
     # Available versions are listed in @rules_python//python:versions.bzl.
     python_version = "3.8",
 )
 
 load("@python3_8//:defs.bzl", "interpreter")
-load("@rules_python//python:pip.bzl", "pip_install")
+load("@rules_python//python:pip.bzl", "pip_parse")
 
-pip_install(
-    name = "tensorflowjs_dev_deps",
-    python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements-dev.txt",
-)
-
-pip_install(
+pip_parse(
     name = "tensorflowjs_deps",
     python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements.txt",
+    requirements_lock = "@//tfjs-converter/python:requirements_lock.txt",
 )
+
+load("@tensorflowjs_deps//:requirements.bzl", install_tfjs_deps = "install_deps")
+
+install_tfjs_deps()
+
+pip_parse(
+    name = "tensorflowjs_dev_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tfjs-converter/python:requirements-dev_lock.txt",
+)
+
+load("@tensorflowjs_dev_deps//:requirements.bzl", install_tfjs_dev_deps = "install_deps")
+
+install_tfjs_dev_deps()
+
+load("//tfjs-tflite:tflite_repositories.bzl", "tflite_repositories")
+
+tflite_repositories()
+
+load("//tfjs-tfdf:tfdf_repositories.bzl", "tfdf_repositories")
+
+tfdf_repositories()
