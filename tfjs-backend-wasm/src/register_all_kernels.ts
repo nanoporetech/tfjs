@@ -21,11 +21,16 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
+import {acosConfig} from './kernels/Acos';
+import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
+import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
@@ -123,6 +128,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
@@ -134,11 +140,16 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
   allConfig,
   anyConfig,
   argMaxConfig,
+  asinConfig,
+  asinhConfig,
+  atanConfig,
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
@@ -236,6 +247,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,

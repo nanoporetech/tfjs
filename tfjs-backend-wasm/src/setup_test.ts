@@ -168,6 +168,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'scatterND '},
+  {include: 'tensorScatterUpdate '},
   {
     include: 'abs ',
     excludes: [
@@ -401,6 +402,11 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'stringToHashBucketFast'},
   {include: 'reciprocal'},
   {include: 'isNaN'},
+  {include: 'atan '},
+  {include: 'acos '},
+  {include: 'acosh '},
+  {include: 'asin '},
+  {include: 'asinh '},
 ];
 
 const customInclude = (testName: string) => {

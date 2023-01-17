@@ -32,16 +32,20 @@ import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {conv3DConfig} from './kernels/Conv3D';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
@@ -50,8 +54,13 @@ import {cumsumConfig} from './kernels/Cumsum';
 import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
+import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
+import {diagConfig} from './kernels/Diag';
+import {dilation2DConfig} from './kernels/Dilation2D';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
+import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
@@ -85,14 +94,19 @@ import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {lrnConfig} from './kernels/LRN';
+import {lrnGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
+import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -167,16 +181,20 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
   complexConfig,
   concatConfig,
   conv2DConfig,
+  conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
+  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
@@ -184,9 +202,14 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   denseBincountConfig,
   depthToSpaceConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
+  depthwiseConv2dNativeBackpropInputConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
+  dilation2DConfig,
   einsumConfig,
   eluConfig,
+  eluGradConfig,
   equalConfig,
   erfConfig,
   expConfig,
@@ -220,14 +243,19 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
+  lrnConfig,
+  lrnGradConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  maxPoolGradConfig,
+  maxPoolWithArgmaxConfig,
   meanConfig,
   minConfig,
   minimumConfig,
   mirrorPadConfig,
   modConfig,
+  multinomialConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
